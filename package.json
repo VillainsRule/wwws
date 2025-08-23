@@ -1,0 +1,40 @@
+{
+    "name": "wwws",
+    "description": "a worldwide (node, bun, & deno) websocket socks5/h proxy implementation",
+    "version": "1.0.0",
+    "keywords": [
+        "websocket",
+        "proxy",
+        "socks",
+        "socks5",
+        "bun"
+    ],
+    "homepage": "https://github.com/VillainsRule/wwws",
+    "bugs": {
+        "url": "https://github.com/VillainsRule/wwws/issues",
+        "email": "bugs@villainsrule.xyz"
+    },
+    "author": "VillainsRule",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/VillainsRule/wwws.git"
+    },
+    "type": "module",
+    "files": [
+        "dist/**/*",
+        "package.json",
+        "README.md"
+    ],
+    "main": "dist/index.cjs",
+    "module": "dist/index.mjs",
+    "devDependencies": {
+        "@stylistic/eslint-plugin": "^5.2.3",
+        "esbuild": "^0.25.9",
+        "eslint": "^9.33.0",
+        "globals": "^16.3.0"
+    },
+    "scripts": {
+        "build": "bun cli/build.js",
+        "prod": "bun cli/build.js && npm publish --access public"
+    }
+}

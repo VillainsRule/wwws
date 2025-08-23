@@ -1,0 +1,12 @@
+# modules
+node_modules
+bun.lock
+
+# compiled
+dist
+
+# local dev
+.env
+
+# macos
+.DS_Store
