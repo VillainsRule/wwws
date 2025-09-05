@@ -28,7 +28,38 @@ const ws = new WWWebSocket('wss://ip.villainsrule.xyz', {
 the goal of WWWebSocket is to always work, no matter what environment you're in. if you're in an environment that doesn't work, open an [issue](https://github.com/VillainsRule/wwws/issues)!
 
 <br><br>
-<h2 align='center'>supported stuff</h2>
+<h2 align='center'>supported platforms</h2>
+
+wwws supports:
+
+- [nodejs](https://nodejs.org)
+- [deno](https://deno.land)
+- [bun](https://bun.sh)
+
+it also supports both cjs & esm file formats.
+
+> [!WARNING]
+> wwws does NOT support fake node hosting platforms! the main example of this is cloudflare workers. the reason? many of these platforms rewrite node internals to the point where there is massive compatbility loss.
+
+wwws requires several `node:*` internals to run. it does not rely on any npm packages or platform-specific features. deno & bun fully support all of these internals without issues, so wwws works smoothly on all 3 runtimes! if you need a checklist for some reason, here you go:
+
+- `node:crypto`
+  - `crypto.randomBytes` - required
+- `node:dns`
+  - `dns.lookup` - required only if using socks5 proxies, socks5h works without
+- `node:net`
+  - `net.connect` - required
+- `node:tls`
+  - `tls.connect` - required
+- `node:zlib`
+  - `zlib.deflateRaw` - required only if using the `permessage-deflate` feature
+  - `zlib.inflateRaw` - required only if using the `permessage-deflate` feature
+
+> [!NOTE]
+> if you are building your own runtime, you should make sure all of the above modules can be imported without issues at the top level. it's probably also a smart idea to stub the things that aren't required "just in case".
+
+<br><br>
+<h2 align='center'>supported in-library</h2>
 
 since this library rewrites the entire WebSocket object, the following things are supported:
 
