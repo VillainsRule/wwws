@@ -1,0 +1,1 @@
+console.error('wwws does not support the browser.');

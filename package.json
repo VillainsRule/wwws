@@ -1,7 +1,7 @@
 {
     "name": "wwws",
     "description": "a worldwide (node, bun, & deno) websocket socks5/h proxy implementation",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "keywords": [
         "websocket",
         "proxy",
@@ -27,6 +27,7 @@
     ],
     "main": "dist/index.cjs",
     "module": "dist/index.mjs",
+    "browser": "dist/browser.js",
     "devDependencies": {
         "@stylistic/eslint-plugin": "^5.2.3",
         "esbuild": "^0.25.9",
