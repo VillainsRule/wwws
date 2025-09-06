@@ -182,9 +182,9 @@ class WWWebSocket {
                     reason = payload.slice(2).toString();
                 }
                 this.$emit('close', { code, reason });
-                if (this.readyState === WebSocket.CLOSING) {
+                if (this.readyState === WWWebSocket.CLOSING) {
                     this.$socket.end();
-                    this.readyState = WebSocket.CLOSED;
+                    this.readyState = WWWebSocket.CLOSED;
                 } else this.close(code, reason);
             } else if (opcode === 0x9) { // ping frame
                 this.pong(payload);
