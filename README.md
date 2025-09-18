@@ -95,6 +95,9 @@ since this library rewrites the entire WebSocket object, the following things ar
 
 if something here is missing that you require, you are encouraged to open an [issue](https://github.com/VillainsRule/wwws/issues) for support!
 
+> [!NOTE]
+> there are no plans to officially use `Deno.createHttpClient` [under the hood](https://github.com/denoland/deno/commit/97ae158610f8b2421929fe360bf5c334a70d7c55).
+
 <br><br>
 <h2 align='center'>this is obviously NOT spec compliant!</h2>
 
