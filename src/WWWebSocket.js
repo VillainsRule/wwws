@@ -106,7 +106,7 @@ class WWWebSocket {
                     const leftover = chunk.slice(chunk.indexOf('\r\n\r\n') + 4);
                     if (leftover.length > 0) this.$readFrame(leftover);
                     this.$socket.on('data', (data) => this.$readFrame(data));
-                    this.$socket.on('close', () => this.$emit('close'));
+                    this.$socket.on('close', (info) => this.$emit('close', info));
                     this.$socket.on('error', (err) => this.$emit('error', err));
                 }
             });
@@ -152,7 +152,7 @@ class WWWebSocket {
 
             if (
                 (opcode === 0x1 || opcode === 0x2) &&
-                this.$connectionHeaders['sec-websocket-extensions'].includes('permessage-deflate') &&
+                this.$connectionHeaders['sec-websocket-extensions']?.includes('permessage-deflate') &&
                 rsv1
             ) {
                 // decompress
