@@ -2,10 +2,22 @@ import dns from 'node:dns';
 import net from 'node:net';
 import tls from 'node:tls';
 
-const socksConnect = ({ proxy, destHost, destPort, useTLS = false, resolveDnsLocally = false }) => new Promise((resolve, reject) => {
-    const connectWithHost = (hostToUse) => {
-        const hasAuth = proxy.username && proxy.password;
-        const methods = hasAuth ? [0x00, 0x02] : [0x00];
+export interface SocksConnectProps {
+    proxy: {
+        hostname: string;
+        port: number;
+        username?: string;
+        password?: string;
+    };
+    destHost: string;
+    destPort: number;
+    useTLS?: boolean;
+    resolveDnsLocally?: boolean;
+}
+
+const socksConnect = ({ proxy, destHost, destPort, useTLS = false, resolveDnsLocally = false }: SocksConnectProps): Promise<net.Socket | tls.TLSSocket> => new Promise((resolve, reject) => {
+    const connectWithHost = (hostToUse: string) => {
+        const methods = proxy.username && proxy.password ? [0x00, 0x02] : [0x00];
         const socket = net.connect(proxy.port, proxy.hostname, () => {
             socket.write(Buffer.from([0x05, methods.length, ...methods]));
         });
@@ -44,7 +56,7 @@ const socksConnect = ({ proxy, destHost, destPort, useTLS = false, resolveDnsLoc
         socket.once('data', (res) => {
             if (res[0] !== 0x05) return reject(new Error('Not SOCKS5'));
             if (res[1] === 0x00) sendConnect(); // no auth
-            else if (res[1] === 0x02 && hasAuth) {
+            else if (res[1] === 0x02 && proxy.username && proxy.password) {
                 // basic username & password auth
                 const uBuf = Buffer.from(proxy.username);
                 const pBuf = Buffer.from(proxy.password);

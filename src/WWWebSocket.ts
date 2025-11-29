@@ -5,6 +5,14 @@ import zlib from 'node:zlib';
 
 import socksConnect from './socksConnect.js';
 
+export interface WWWebSocketOptions {
+    headers?: Record<string, string>;
+    proxy?: string;
+    agent?: any;
+}
+
+export type WWWebSocketEvent = 'open' | 'message' | 'error' | 'close' | 'ping' | 'pong';
+
 class WWWebSocket {
     static CONNECTING = 0;
     static OPEN = 1;
@@ -16,12 +24,17 @@ class WWWebSocket {
 
     url = '';
 
-    onopen = null;
-    onerror = null;
-    onclose = null;
-    onmessage = null;
+    onopen: ((this: WWWebSocket, ev: any) => any) | null = null;
+    onerror: ((this: WWWebSocket, ev: any) => any) | null = null;
+    onclose: ((this: WWWebSocket, ev: any) => any) | null = null;
+    onmessage: ((this: WWWebSocket, ev: { data: any }) => any) | null = null;
 
-    constructor(wsUrl, options) {
+    $socket: net.Socket | tls.TLSSocket | null = null;
+    $connectionHeaders: Record<string, string> = {};
+    $perMessageDeflate = true;
+    $listeners: Record<string, Function[]>;
+
+    constructor(wsUrl: string, options: WWWebSocketOptions = {}) {
         if (typeof options !== 'object') options = {};
 
         if (options.agent) {
@@ -40,7 +53,7 @@ class WWWebSocket {
         this.$connect(wsUrl, options.headers || {}, options.proxy);
     }
 
-    async $connect(wsUrl, headerObject, proxyUrl) {
+    async $connect(wsUrl: string, headerObject: Record<string, string>, proxyUrl?: string) {
         try {
             const ws = new URL(wsUrl);
             const useTLS = ws.protocol === 'wss:';
@@ -92,7 +105,7 @@ class WWWebSocket {
 
             let handshake = '';
             this.$socket.on('data', (chunk) => {
-                if (this.readyState !== WWWebSocket.CONNECTING) return;
+                if (this.readyState !== WWWebSocket.CONNECTING || !this.$socket) return;
                 handshake += chunk.toString();
                 if (handshake.includes('\r\n\r\n')) {
                     if (!handshake.includes('101 Switching Protocols')) {
@@ -118,7 +131,7 @@ class WWWebSocket {
     }
 
     // this was the worst thing i've ever written
-    $readFrame(data) {
+    $readFrame(data: any) {
         let offset = 0;
         while (offset < data.length) {
             if (offset + 2 > data.length) return; // malformed message
@@ -147,7 +160,7 @@ class WWWebSocket {
             let payload = data.slice(offset, offset + len);
             offset += len;
             if (mask && maskingKey) {
-                payload = Buffer.from(payload.map((b, i) => b ^ maskingKey[i % 4]));
+                payload = Buffer.from(payload.map((b: number, i: number) => b ^ maskingKey[i % 4]));
             }
 
             if (
@@ -183,7 +196,7 @@ class WWWebSocket {
                 }
                 this.$emit('close', { code, reason });
                 if (this.readyState === WWWebSocket.CLOSING) {
-                    this.$socket.end();
+                    this.$socket?.end();
                     this.readyState = WWWebSocket.CLOSED;
                 } else this.close(code, reason);
             } else if (opcode === 0x9) { // ping frame
@@ -196,7 +209,7 @@ class WWWebSocket {
     }
 
     ping(data = '') {
-        if (this.readyState !== WWWebSocket.OPEN) throw new Error('WebSocket not open');
+        if (this.readyState !== WWWebSocket.OPEN || !this.$socket) throw new Error('WebSocket not open');
         const payload = Buffer.from(data);
         const header = Buffer.alloc(2);
         header[0] = 0x89; // FIN + ping frame
@@ -207,7 +220,7 @@ class WWWebSocket {
     }
 
     pong(data = '') {
-        if (this.readyState !== WWWebSocket.OPEN) throw new Error('WebSocket not open');
+        if (this.readyState !== WWWebSocket.OPEN || !this.$socket) throw new Error('WebSocket not open');
         const payload = Buffer.from(data);
         const header = Buffer.alloc(2);
         header[0] = 0x8A; // FIN + pong frame
@@ -217,13 +230,13 @@ class WWWebSocket {
         this.$socket.write(Buffer.concat([header, maskingKey, masked]));
     }
 
-    send(data) {
-        if (this.readyState !== 1) throw new Error('WebSocket not open');
+    send(data: any) {
+        if (this.readyState !== 1 || !this.$socket) throw new Error('WebSocket not open');
         const payload = Buffer.from(data);
         const isText = typeof data === 'string';
         const opcode = isText ? 0x1 : 0x2;
         const compress = this.$perMessageDeflate && isText;
-        const sendFrame = (finalPayload, useRsv1 = false) => {
+        const sendFrame = (finalPayload: Buffer, useRsv1 = false) => {
             let header = Buffer.alloc(2);
             header[0] = 0x80 | (useRsv1 ? 0x40 : 0x00) | opcode; // FIN + RSV1 if compressed + opcode
             if (finalPayload.length < 126) {
@@ -241,7 +254,7 @@ class WWWebSocket {
             }
             const maskingKey = crypto.randomBytes(4);
             const masked = Buffer.from(finalPayload.map((b, i) => b ^ maskingKey[i % 4]));
-            this.$socket.write(Buffer.concat([header, maskingKey, masked]));
+            this.$socket!.write(Buffer.concat([header, maskingKey, masked]));
         };
         if (compress) zlib.deflateRaw(payload, (err, compressed) => {
             if (err) {
@@ -253,7 +266,7 @@ class WWWebSocket {
         else sendFrame(payload, false);
     }
 
-    close(code, reason) {
+    close(code?: number, reason?: string) {
         if (this.readyState === WWWebSocket.CLOSING) return;
         this.readyState = WWWebSocket.CLOSING;
         if (this.$socket) {
@@ -263,9 +276,8 @@ class WWWebSocket {
                 payload = Buffer.alloc(2 + (reason ? Buffer.byteLength(reason) : 0));
                 payload.writeUInt16BE(code, 0);
                 if (reason) payload.write(reason, 2);
-            } else {
-                payload = Buffer.alloc(0);
-            }
+            } else payload = Buffer.alloc(0);
+
             const header = Buffer.alloc(2);
             header[0] = 0x88; // FIN + close frame
             header[1] = payload.length | 0x80; // mask bit set
@@ -276,16 +288,16 @@ class WWWebSocket {
         }
     }
 
-    addEventListener(event, listener) {
+    addEventListener(event: WWWebSocketEvent, listener: Function) {
         if (this.$listeners[event]) this.$listeners[event].push(listener);
     }
 
-    removeEventListener(event, listener) {
+    removeEventListener(event: WWWebSocketEvent, listener: Function) {
         if (!this.$listeners[event]) return;
         this.$listeners[event] = this.$listeners[event].filter(l => l !== listener);
     }
 
-    $emit(event, arg) {
+    $emit(event: WWWebSocketEvent, arg: any = null) {
         if (event === 'message' && typeof this.onmessage === 'function') this.onmessage(arg);
         if (event === 'close' && typeof this.onclose === 'function') this.onclose(arg);
         if (event === 'error' && typeof this.onerror === 'function') this.onerror(arg);

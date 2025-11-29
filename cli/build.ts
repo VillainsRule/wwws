@@ -4,7 +4,7 @@ import path from 'path';
 
 const root = path.join(import.meta.dirname, '..');
 
-await Promise.all(['cjs', 'esm'].map(async (format) => await esbuild.build({
+await Promise.all((['cjs', 'esm'] as const).map(async (format) => await esbuild.build({
     entryPoints: [path.join(root, 'src', 'index.js')],
     outfile: path.join(root, 'dist', 'index.' + (format === 'cjs' ? 'cjs' : 'mjs')),
     bundle: true,
