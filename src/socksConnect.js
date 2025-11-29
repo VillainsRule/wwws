@@ -14,7 +14,6 @@ const socksConnect = ({ proxy, destHost, destPort, useTLS = false, resolveDnsLoc
             let req;
             // socks5 vs socks5h: in socks5, the hostname is resolved locally,
             // while in socks5h, the hostname is sent to the proxy for resolution
-            // we have to handle this so that socks5 and socks5h are interchangeable
             if (resolveDnsLocally) {
                 // socks5: send IPv4 address
                 const ipParts = hostToUse.split('.').map(Number);
@@ -62,7 +61,6 @@ const socksConnect = ({ proxy, destHost, destPort, useTLS = false, resolveDnsLoc
 
     if (resolveDnsLocally) {
         // socks5: must resolve DNS locally
-        // this DOES work for cloudflare protected sites
         dns.lookup(destHost, { family: 4 }, (err, address) => {
             if (err) return reject(err);
             connectWithHost(address);

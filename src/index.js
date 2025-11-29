@@ -1,3 +1,6 @@
+import socksConnect from './socksConnect.js';
 import WWWebSocket from './WWWebSocket.js';
-export { WWWebSocket };
+
+export { socksConnect, WWWebSocket };
+
 export default WWWebSocket;
