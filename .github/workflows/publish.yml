@@ -19,5 +19,7 @@ jobs:
 
       - name: install npm
         run: bun install -g npm@latest
+
+      - run: bun install
       - run: bun run build
       - run: npm publish
