@@ -31,7 +31,7 @@ class WWWebSocket {
 
     $socket: net.Socket | tls.TLSSocket | null = null;
     $connectionHeaders: Record<string, string> = {};
-    $perMessageDeflate = true;
+    $perMessageDeflate = false;
     $listeners: Record<string, Function[]>;
 
     constructor(wsUrl: string, options: WWWebSocketOptions = {}) {
@@ -113,6 +113,8 @@ class WWWebSocket {
                         this.close();
                         return;
                     }
+                    this.$perMessageDeflate = handshake.toLowerCase().includes('sec-websocket-extensions') &&
+                        handshake.toLowerCase().includes('permessage-deflate');
                     this.readyState = WWWebSocket.OPEN;
                     this.$emit('open');
                     // we need to find out where the headers end, since we don't care about those
