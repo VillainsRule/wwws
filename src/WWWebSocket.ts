@@ -9,6 +9,7 @@ export interface WWWebSocketOptions {
     headers?: Record<string, string>;
     proxy?: string;
     agent?: any;
+    rejectUnauthorized?: boolean;
 }
 
 export type WWWebSocketEvent = 'open' | 'message' | 'error' | 'close' | 'ping' | 'pong';
@@ -48,6 +49,7 @@ class WWWebSocket {
 
         this.url = wsUrl;
         this.readyState = WWWebSocket.CONNECTING;
+        this.rejectUnauthorized = options.rejectUnauthorized ?? true;
 
         this.$listeners = { open: [], message: [], error: [], close: [] };
         this.$socket = null;
