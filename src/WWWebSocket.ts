@@ -79,7 +79,8 @@ class WWWebSocket {
                     destHost,
                     destPort,
                     useTLS,
-                    resolveDnsLocally
+                    resolveDnsLocally,
+                    rejectUnauthorized: this.rejectUnauthorized
                 });
             } else {
                 if (useTLS) {
@@ -89,6 +90,8 @@ class WWWebSocket {
                     this.$socket = tls.connect(tlsOptions);
                 } else this.$socket = net.connect(destPort, destHost);
             }
+
+            if (!this.$socket) throw new Error('Failed to create socket');
 
             const key = crypto.randomBytes(16).toString('base64');
 

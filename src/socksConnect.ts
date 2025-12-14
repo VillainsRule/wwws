@@ -13,9 +13,10 @@ export interface SocksConnectProps {
     destPort: number;
     useTLS?: boolean;
     resolveDnsLocally?: boolean;
+    rejectUnauthorized?: boolean;
 }
 
-const socksConnect = ({ proxy, destHost, destPort, useTLS = false, resolveDnsLocally = false }: SocksConnectProps): Promise<net.Socket | tls.TLSSocket> => new Promise((resolve, reject) => {
+const socksConnect = ({ proxy, destHost, destPort, useTLS = false, resolveDnsLocally = false, rejectUnauthorized = true }: SocksConnectProps): Promise<net.Socket | tls.TLSSocket> => new Promise((resolve, reject) => {
     const connectWithHost = (hostToUse: string) => {
         const methods = proxy.username && proxy.password ? [0x00, 0x02] : [0x00];
         const socket = net.connect(proxy.port, proxy.hostname, () => {
@@ -47,7 +48,7 @@ const socksConnect = ({ proxy, destHost, destPort, useTLS = false, resolveDnsLoc
             socket.once('data', (connRes) => {
                 if (connRes[1] !== 0x00) return reject(new Error('SOCKS5 connect failed'));
                 if (useTLS) {
-                    const tlsSocket = tls.connect({ socket, servername: destHost });
+                    const tlsSocket = tls.connect({ socket, servername: destHost, rejectUnauthorized });
                     resolve(tlsSocket);
                 } else resolve(socket);
             });
