@@ -21,6 +21,7 @@ class WWWebSocket {
 
     binaryType = 'nodebuffer';
     readyState = WWWebSocket.CONNECTING;
+    rejectUnauthorized = true;
 
     url = '';
 
@@ -80,9 +81,14 @@ class WWWebSocket {
                     useTLS,
                     resolveDnsLocally
                 });
-            } else this.$socket = useTLS
-                ? tls.connect({ host: destHost, port: destPort, servername: destHost })
-                : net.connect(destPort, destHost);
+            } else {
+                if (useTLS) {
+                    const tlsOptions: tls.ConnectionOptions = { host: destHost, port: destPort, rejectUnauthorized: this.rejectUnauthorized };
+                    const isIpAddress = /^(\d+\.){3}\d+$/.test(destHost) || destHost === '::1' || /^::/.test(destHost);
+                    if (!isIpAddress) tlsOptions.servername = destHost;
+                    this.$socket = tls.connect(tlsOptions);
+                } else this.$socket = net.connect(destPort, destHost);
+            }
 
             const key = crypto.randomBytes(16).toString('base64');
 
