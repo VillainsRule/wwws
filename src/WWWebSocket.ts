@@ -5,8 +5,10 @@ import zlib from 'node:zlib';
 
 import socksConnect from './socksConnect.js';
 
+type WWHeaders = Record<string, string | null | undefined>;
+
 export interface WWWebSocketOptions {
-    headers?: Record<string, string>;
+    headers?: WWHeaders;
     proxy?: string;
     agent?: any;
     rejectUnauthorized?: boolean;
@@ -56,7 +58,7 @@ class WWWebSocket {
         this.$connect(wsUrl, options.headers || {}, options.proxy);
     }
 
-    async $connect(wsUrl: string, headerObject: Record<string, string>, proxyUrl?: string) {
+    async $connect(wsUrl: string, headerObject: WWHeaders, proxyUrl?: string) {
         try {
             const ws = new URL(wsUrl);
             const useTLS = ws.protocol === 'wss:';
@@ -98,7 +100,7 @@ class WWWebSocket {
             const key = crypto.randomBytes(16).toString('base64');
 
             const headers = {
-                ...Object.fromEntries(Object.entries(headerObject).map(([k, v]) => [k.toLowerCase(), v])),
+                ...Object.fromEntries(Object.entries(headerObject).filter(([k, v]) => k && v).map(([k, v]) => [k.toLowerCase(), v])),
                 'host': destHost,
                 'upgrade': 'websocket',
                 'connection': 'Upgrade',
@@ -110,7 +112,7 @@ class WWWebSocket {
 
             this.$socket.write(
                 `GET ${ws.pathname}${ws.search} HTTP/1.1` +
-                Object.entries(headers).map(([k, v]) => `\r\n${k}: ${v}`).join('') +
+                Object.entries(headers).filter(([k, v]) => k && v).map(([k, v]) => `\r\n${k}: ${v}`).join('') +
                 '\r\n\r\n'
             );
 
