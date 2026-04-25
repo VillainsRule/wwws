@@ -7,8 +7,7 @@ const dist = path.join(root, 'dist');
 
 fs.rmSync(dist, { recursive: true, force: true });
 
-cp.execSync('bunx --bun tsdown --format=esm --entry="src/**/*.ts" --fixedExtension=true', { cwd: root });
-cp.execSync('bunx --bun tsdown --format=cjs --entry="src/**/*.ts" --fixedExtension=true', { cwd: root });
+cp.execSync('bunx --bun tsdown', { cwd: root, stdio: 'inherit' });
 
 fs.cpSync(path.join(import.meta.dirname, 'fill', 'browser.js'), path.join(root, 'dist', 'browser.js'));
 
