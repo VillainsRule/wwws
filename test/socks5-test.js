@@ -1,4 +1,4 @@
-import WWWebSocket from '../src/index.js';
+import WWWebSocket from '../dist/index.mjs';
 
 const proxyUrl = 'socks5://user:pass@localhost:1080';
 

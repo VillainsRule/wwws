@@ -1,15 +1,19 @@
 {
     "compilerOptions": {
         "target": "ESNext",
-        "module": "ESNext",
+        "module": "nodenext",
+        "moduleResolution": "nodenext",
         "declaration": true,
         "strict": true,
-        "emitDeclarationOnly": true,
+        "emitDeclarationOnly": false,
+        "rootDir": ".",
         "outDir": "./dist",
         "skipLibCheck": true,
-        "allowSyntheticDefaultImports": true
+        "allowSyntheticDefaultImports": true,
+        "types": ["bun"]
     },
     "include": [
-        "src/**/*"
+        "src/**/*",
+        "test/**/*"
     ]
 }

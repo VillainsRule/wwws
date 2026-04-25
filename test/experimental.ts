@@ -11,7 +11,9 @@ const ATYP_DOMAIN = 0x03;
 const ATYP_IPV6 = 0x04;
 
 const server = net.createServer((client) => {
-    client.once('data', (handshake) => {
+    client.once('data', (rawHandshake) => {
+        const handshake = typeof rawHandshake === 'string' ? Buffer.from(rawHandshake) : rawHandshake;
+
         console.log('[SERVER] socks5 proxy connection attempt');
 
         const nMethods = handshake[1];
@@ -21,7 +23,9 @@ const server = net.createServer((client) => {
         client.write(Buffer.from([SOCKS_VERSION, method]));
 
         const handleRequest = () => {
-            client.once('data', async (req) => {
+            client.once('data', async (rawReq) => {
+                const req = typeof rawReq === 'string' ? Buffer.from(rawReq) : rawReq;
+
                 if (req[0] !== SOCKS_VERSION || req[1] !== CMD_CONNECT) return client.end();
                 let addr, offset = 3;
                 const atyp = req[offset++];
@@ -56,7 +60,9 @@ const server = net.createServer((client) => {
         }
 
         if (method === METHOD_USER_PASS) {
-            client.once('data', (auth) => {
+            client.once('data', (rawAuth) => {
+                const auth = typeof rawAuth === 'string' ? Buffer.from(rawAuth) : rawAuth;
+
                 const ulen = auth[1];
                 const uname = auth.subarray(2, 2 + ulen).toString();
                 const plen = auth[2 + ulen];

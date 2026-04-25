@@ -1,18 +1,14 @@
-import esbuild from 'esbuild';
+import cp from 'child_process';
 import fs from 'fs';
 import path from 'path';
 
 const root = path.join(import.meta.dirname, '..');
+const dist = path.join(root, 'dist');
 
-await Promise.all((['cjs', 'esm'] as const).map(async (format) => await esbuild.build({
-    entryPoints: [path.join(root, 'src', 'index.js')],
-    outfile: path.join(root, 'dist', 'index.' + (format === 'cjs' ? 'cjs' : 'mjs')),
-    bundle: true,
-    minify: false,
-    keepNames: true,
-    platform: 'node',
-    format
-})));
+fs.rmSync(dist, { recursive: true, force: true });
+
+cp.execSync('bunx --bun tsdown --format=esm --entry="src/**/*.ts" --fixedExtension=true', { cwd: root });
+cp.execSync('bunx --bun tsdown --format=cjs --entry="src/**/*.ts" --fixedExtension=true', { cwd: root });
 
 fs.cpSync(path.join(import.meta.dirname, 'fill', 'browser.js'), path.join(root, 'dist', 'browser.js'));
 

@@ -1,5 +1,5 @@
 import { SocksProxyAgent } from 'socks-proxy-agent';
-import WWWebSocket from '../src/index.js';
+import WWWebSocket from '../dist/index.mjs';
 
 const proxyUrl = process.env.REMOTE_SOCKS5H;
 
