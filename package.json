@@ -1,7 +1,7 @@
 {
     "name": "wwws",
     "description": "a worldwide (node, bun, & deno) websocket socks5/h proxy implementation",
-    "version": "1.2.5",
+    "version": "1.2.6",
     "keywords": [
         "websocket",
         "proxy",
@@ -30,6 +30,7 @@
     "types": "dist/index.d.mts",
     "exports": {
         ".": {
+            "browser": "./dist/browser.js",
             "import": {
                 "types": "./dist/index.d.mts",
                 "default": "./dist/index.mjs"
